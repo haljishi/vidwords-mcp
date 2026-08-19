@@ -137,7 +137,7 @@ Ready-made config files live in [`examples/`](./examples).
 
 | Tool | What it does | Cost |
 | --- | --- | --- |
-| `search_transcript` | Find where one video discusses something. Returns the matching moments with timestamps, quoted context, and `youtube.com/watch?v=…&t=…s` deep links. | 1 credit |
+| `search_transcript` | Find where a video discusses something. Takes one video **or a list of up to 25**, so one call can answer a question across a whole channel. Returns the matching moments with timestamps, quoted context, and `youtube.com/watch?v=…&t=…s` deep links. | 1 credit per video |
 | `get_transcript` | Full transcript text for up to 25 videos in one call. | 1 credit per video |
 | `list_channel_videos` | Resolve a channel handle, URL or `UC…` id to its recent uploads. | Free · Starter and up |
 | `list_watchlists` | The account's Radar watchlists and how much each has recorded. | Free |
@@ -156,6 +156,32 @@ Ask "what did this two-hour interview say about pricing?" and `get_transcript` r
 
 `search_transcript` returns only the matching stretches, each with a deep link. Reach for
 `get_transcript` when you genuinely want the whole text: an export, a diff, a corpus.
+
+### Ask for a span, not a whole video
+
+Both transcript tools take optional `from` and `to` timecodes — seconds (`615`), `m:ss`
+(`10:20`) or `h:mm:ss` (`1:02:13`):
+
+```json
+{ "videos": ["dQw4w9WgXcQ"], "from": "10:20", "to": "11:00" }
+```
+
+These are the same formats the tools print back, so a timestamp out of one answer can be
+pasted straight into the next question. A timecode that cannot be parsed is refused before
+anything is fetched, so a typo costs no credit — it never silently widens to the whole video.
+
+### One call across a channel
+
+`search_transcript` accepts a list, which is how you answer "what has this channel said about
+X" without a round trip per video. Get the ids from `list_channel_videos` first:
+
+```json
+{ "video": ["VIDEO_ID_1", "VIDEO_ID_2", "VIDEO_ID_3"], "query": "pricing" }
+```
+
+Each video is billed at the usual 1 credit, and one unavailable video is reported in its own
+row rather than failing the call — the others were fetched and charged for, so you still get
+them.
 
 ### It reads the picture, not only the captions
 
