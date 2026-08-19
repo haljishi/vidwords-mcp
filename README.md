@@ -94,12 +94,15 @@ send a custom HTTP header, or when you want the server in a container:
   "mcpServers": {
     "vidwords": {
       "command": "npx",
-      "args": ["-y", "@vidwords/mcp"],
+      "args": ["-y", "github:haljishi/vidwords-mcp"],
       "env": { "VIDWORDS_API_TOKEN": "YOUR_API_TOKEN" }
     }
   }
 }
 ```
+
+> Run straight from this repository — the proxy is not published to npm, so a
+> bare `npx @vidwords/mcp` will not resolve.
 
 ```bash
 docker build -t vidwords-mcp .

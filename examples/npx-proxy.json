@@ -1,9 +1,9 @@
 {
-  "_comment": "Runs this repository's stdio proxy, which forwards tool calls to https://vidwords.com/mcp. Use when your client cannot send a custom HTTP header.",
+  "_comment": "Runs this repository's stdio proxy, which forwards tool calls to https://vidwords.com/mcp. Use when your client cannot send a custom HTTP header. Runs straight from GitHub — the proxy is not published to npm.",
   "mcpServers": {
     "vidwords": {
       "command": "npx",
-      "args": ["-y", "@vidwords/mcp"],
+      "args": ["-y", "github:haljishi/vidwords-mcp"],
       "env": { "VIDWORDS_API_TOKEN": "YOUR_API_TOKEN" }
     }
   }
