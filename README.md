@@ -83,9 +83,36 @@ VidWords to sign in, and shows a consent screen naming exactly what it is asking
 alone grants nothing — access begins only when a signed-in person clicks **Approve**, and live
 connections can be revoked from your API page with immediate effect.
 
-### Clients without custom-header support
+### Clients without custom-header support, and Docker
 
-Bridge it over stdio with [`mcp-remote`](https://www.npmjs.com/package/mcp-remote):
+This repository also ships a small **stdio proxy** (`src/index.js`) that speaks MCP on
+stdin/stdout and forwards tool calls to the hosted endpoint. Use it when your client cannot
+send a custom HTTP header, or when you want the server in a container:
+
+```json
+{
+  "mcpServers": {
+    "vidwords": {
+      "command": "npx",
+      "args": ["-y", "@vidwords/mcp"],
+      "env": { "VIDWORDS_API_TOKEN": "YOUR_API_TOKEN" }
+    }
+  }
+}
+```
+
+```bash
+docker build -t vidwords-mcp .
+docker run --rm -i -e VIDWORDS_API_TOKEN=YOUR_API_TOKEN vidwords-mcp
+```
+
+The tool schemas are declared inline in the proxy, so `initialize` and `tools/list` answer
+without any credentials and the upstream is not contacted until a tool is actually called.
+A call without `VIDWORDS_API_TOKEN` returns a readable error rather than failing the
+handshake. `VIDWORDS_MCP_URL` overrides the endpoint if you are pointing at a non-production
+instance.
+
+The generic [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge works too:
 
 ```json
 {

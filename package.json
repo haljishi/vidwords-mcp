@@ -1,0 +1,15 @@
+{
+  "name": "@vidwords/mcp",
+  "version": "1.0.1",
+  "description": "MCP proxy for VidWords — search YouTube transcripts and read a video's frames, with clickable timestamp citations",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": { "vidwords-mcp": "src/index.js" },
+  "scripts": { "start": "node src/index.js" },
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.30.0" },
+  "engines": { "node": ">=20" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/haljishi/vidwords-mcp.git" },
+  "homepage": "https://vidwords.com/resources/youtube-mcp-server",
+  "keywords": ["mcp", "youtube", "transcript", "captions", "video", "timestamps", "ai-agent"]
+}
