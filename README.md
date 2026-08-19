@@ -218,8 +218,26 @@ Full numbers: [pricing](https://vidwords.com/pricing?utm_source=github&utm_mediu
 
 ---
 
+## Agent skill
+
+[`skills/youtube-transcripts/SKILL.md`](skills/youtube-transcripts/SKILL.md) is a drop-in agent
+skill for this server — tool selection, timecode spans, channel-wide search, the cost table and
+the error codes worth acting on, in the format Claude and compatible agents load directly.
+
+Copy the folder into your agent's skills directory:
+
+```bash
+git clone --depth 1 https://github.com/haljishi/vidwords-mcp
+cp -r vidwords-mcp/skills/youtube-transcripts ~/.claude/skills/
+```
+
+It assumes the MCP server is configured (see Quick start). The point of it is that an assistant
+which has read the skill knows to reach for `search_transcript` with a timecode span instead of
+pulling a whole two-hour transcript into its context.
+
 ## Documentation
 
+- [Agent skill (SKILL.md)](skills/youtube-transcripts/SKILL.md)
 - [YouTube MCP server — overview](https://vidwords.com/resources/youtube-mcp-server?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 - [Setup in Claude Code](https://vidwords.com/resources/youtube-mcp-claude-code?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 - [Setup in Claude Desktop](https://vidwords.com/resources/youtube-mcp-claude?utm_source=github&utm_medium=readme&utm_campaign=mcp)
