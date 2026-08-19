@@ -1,0 +1,31 @@
+{
+  "identifier": "vidwords-youtube",
+  "name": "VidWords YouTube",
+  "version": "1.0.1",
+  "description": "Search a YouTube video's transcript and read its frames — slides, charts, demos and on-screen text — with every answer citing a clickable timestamp.",
+  "author": "VidWords",
+  "authorUrl": "https://vidwords.com",
+  "homepage": "https://github.com/haljishi/vidwords-mcp",
+  "cloudEndpoint": "https://vidwords.com/mcp",
+  "icon": "🎬",
+  "tags": [
+    "youtube",
+    "transcript",
+    "video",
+    "search",
+    "captions",
+    "timestamps",
+    "remote"
+  ],
+  "tools": [
+    { "name": "search_transcript", "description": "Search one YouTube video for a phrase or topic and return the matching moments with timestamps and deep links you can cite." },
+    { "name": "get_transcript", "description": "Fetch the complete transcript text for one or more YouTube videos (up to 25 per call)." },
+    { "name": "list_channel_videos", "description": "Resolve a YouTube channel handle, URL or id to its recent uploads." },
+    { "name": "list_watchlists", "description": "The account's Radar watchlists — the YouTube channels it monitors for new uploads." },
+    { "name": "watchlist_activity", "description": "The most recent videos Radar has recorded for one watchlist, newest first." },
+    { "name": "account", "description": "The plan and credit balance for the calling token, so an agent can price a batch before running it." },
+    { "name": "analyze_video", "description": "Start a deep visual analysis of a YouTube video: chapters, key moments, on-screen text and evidence tied to exact timestamps." },
+    { "name": "get_analysis", "description": "Fetch the analysis started by analyze_video once it is ready." },
+    { "name": "ask_video", "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence." }
+  ]
+}
