@@ -1,0 +1,11 @@
+# ~/.codex/config.toml  (or .codex/config.toml for a single trusted project)
+#
+# Codex sends `Authorization: Bearer <value>` for bearer_token_env_var, and this
+# server authenticates with Basic — so use env_http_headers instead. It also keeps
+# the token in the environment rather than in a file you might commit.
+#
+#   export VIDWORDS_MCP_AUTH="Basic YOUR_API_TOKEN"
+
+[mcp_servers.vidwords]
+url = "https://vidwords.com/mcp"
+env_http_headers = { "Authorization" = "VIDWORDS_MCP_AUTH" }

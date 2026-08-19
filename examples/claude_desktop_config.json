@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "vidwords": {
+      "type": "http",
+      "url": "https://vidwords.com/mcp",
+      "headers": {
+        "Authorization": "Basic YOUR_API_TOKEN"
+      }
+    }
+  }
+}

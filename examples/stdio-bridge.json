@@ -1,0 +1,15 @@
+{
+  "_comment": "For clients that cannot send a custom HTTP header. Bridges the remote server over stdio with mcp-remote.",
+  "mcpServers": {
+    "vidwords": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://vidwords.com/mcp",
+        "--header",
+        "Authorization:Basic YOUR_API_TOKEN"
+      ]
+    }
+  }
+}
