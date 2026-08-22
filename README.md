@@ -23,9 +23,53 @@ manifest, configuration reference and issue tracker for that endpoint.
 
 ## Quick start
 
-Get a free token: create an account at **[vidwords.com/register](https://vidwords.com/register?utm_source=github&utm_medium=readme&utm_campaign=mcp)**,
-**verify your email**, then copy the token from your profile. The free plan includes monthly
-credits and 10 Watch minutes, so you can wire this up and use it before paying anything.
+**Most clients need no token at all.** The server speaks OAuth, so the client registers itself,
+sends you to VidWords to sign in, and stores a credential it refreshes on its own. You can create
+the account during that sign-in step. The free plan includes monthly credits and 10 Watch minutes,
+so you can wire this up and use it before paying anything.
+
+### claude.ai, ChatGPT and Claude Desktop — add a connector, nothing to paste
+
+Add this as a custom connector:
+
+```
+https://vidwords.com/mcp
+```
+
+The host registers itself, sends you to VidWords to sign in, and shows a consent screen naming
+exactly what it is asking for. Registration alone grants nothing — access begins only when a
+signed-in person clicks **Approve**, and live connections can be revoked from your API page with
+immediate effect.
+
+### Claude Code
+
+```bash
+claude mcp add --transport http vidwords https://vidwords.com/mcp
+```
+
+Then type `/mcp` in a session and choose **Authenticate**.
+
+### Cursor — `.cursor/mcp.json`
+
+```json
+{
+  "mcpServers": {
+    "vidwords": {
+      "url": "https://vidwords.com/mcp"
+    }
+  }
+}
+```
+
+Cursor shows the server as **Needs login** — click that once and it runs the OAuth flow in your
+browser. Because this file carries no secret, it is safe to commit, which the header form below
+is not.
+
+## A static token instead
+
+For CI, a container, or a client with no OAuth support, authenticate with a header. Create an
+account at **[vidwords.com/register](https://vidwords.com/register?utm_source=github&utm_medium=readme&utm_campaign=mcp)**,
+**verify your email**, then copy the token from your profile.
 
 ### Claude Code
 
@@ -61,6 +105,9 @@ claude mcp add --transport http vidwords https://vidwords.com/mcp \
 }
 ```
 
+Keep this out of version control, or use `~/.cursor/mcp.json` instead — the header holds a live
+credential.
+
 ### Codex CLI — `~/.codex/config.toml`
 
 ```toml
@@ -75,13 +122,6 @@ export VIDWORDS_MCP_AUTH="Basic YOUR_API_TOKEN"
 
 > Do **not** use `bearer_token_env_var`. It is the obvious-looking field, but it sends
 > `Authorization: Bearer <value>` and this server authenticates with **Basic**.
-
-### claude.ai and ChatGPT — OAuth, nothing to paste
-
-Add `https://vidwords.com/mcp` as a custom connector. The host registers itself, sends you to
-VidWords to sign in, and shows a consent screen naming exactly what it is asking for. Registration
-alone grants nothing — access begins only when a signed-in person clicks **Approve**, and live
-connections can be revoked from your API page with immediate effect.
 
 ### Clients without custom-header support, and Docker
 
@@ -199,7 +239,8 @@ what it is told without the scepticism a human reader applies.
 
 ## Auth, cost and limits
 
-- **`Basic`, not `Bearer`.** The token is sent as-is; you do not base64-encode a `user:pass` pair.
+- **If you pasted a token: `Basic`, not `Bearer`.** The token is sent as-is; you do not base64-encode
+  a `user:pass` pair. Clients that signed in carry their own credential and this does not apply.
 - **Verify your email first.** Until you click the verification link every call returns `403`
   with `{"error":"email_unverified"}` — the most common first-call failure on a new account.
 - **Credits are one pool** shared with the REST API and the website. One credit is one transcript.

@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.vidwords/youtube",
   "title": "VidWords YouTube",
-  "description": "Search YouTube transcripts and read a video's frames; answers cite clickable timestamps.",
-  "version": "1.0.1",
+  "description": "Extract YouTube transcripts, search what was said, and read on-screen frames with cited timestamps.",
+  "version": "1.1.0",
   "websiteUrl": "https://vidwords.com/resources/youtube-mcp-server",
   "repository": {
     "url": "https://github.com/haljishi/vidwords-mcp",
@@ -13,15 +13,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://vidwords.com/mcp",
-      "headers": [
-        {
-          "name": "Authorization",
-          "description": "Basic <your VidWords API token>. Note the Basic scheme, not Bearer. Create a free account at https://vidwords.com/register, verify the email, then copy the token from your profile.",
-          "isRequired": true,
-          "isSecret": true
-        }
-      ]
+      "url": "https://vidwords.com/mcp"
     }
   ]
 }
