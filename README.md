@@ -194,7 +194,7 @@ fetch. Every metered result reports what it `charged`.
 | `account` | Plan and both balances, so the agent can price a job before running it. | Free |
 | `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `estimateOnly: true` returns the price instead, without starting anything. | 3 AI Units per minute of video (Deep: 30) · estimate free |
 | `get_analysis` | Read a finished analysis: chapters, key points, timestamped evidence. `waitSeconds` (up to 25) holds the call until it is ready instead of polling. | Free |
-| `ask_video` | Ask a question against a finished analysis. Citations are verified against stored evidence or dropped. | 1 Watch question |
+| `ask_video` | Ask a question against a finished analysis. Citations are verified against stored evidence or dropped. | 6 AI Units per question |
 
 ### Check the Library first
 

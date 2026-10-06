@@ -136,7 +136,7 @@ is ready, instead of polling in a tight loop.
 | `search_library`, `list_library`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
 | `list_channel_videos` | 1 Cloud Request |
 | `analyze_video` | 3 AI Units per minute of video (Deep: 30); `estimateOnly` is free |
-| `ask_video` | 1 Watch question |
+| `ask_video` | 6 AI Units per question |
 | audio transcription (`transcribeAudio`, `source: "audio"`) | 3 AI Units per minute of video, plus the Cloud Request |
 
 Failed lookups — no captions, invalid id, a language the video lacks — are free.
