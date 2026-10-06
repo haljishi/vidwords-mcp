@@ -43,7 +43,7 @@ const TOOLS = [
   {
     "name": "search_transcript",
     "title": "Search video transcripts",
-    "description": "Search one or many YouTube videos for a phrase or topic and return the matching moments with timestamps and deep links you can cite. Costs 1 Cloud Request per video (the transcript is fetched to search it). Use this instead of get_transcript when the user asks what a video says about something — pass a list to answer \"what does this channel say about X\" in a single call (get the ids from list_channel_videos first).",
+    "description": "Search one or many YouTube videos for a phrase or topic and return the matching moments with timestamps and deep links you can cite. Costs 1 Cloud Request per video the account does not already have (the transcript is fetched to search it); searching a video already in its library is free. Use this instead of get_transcript when the user asks what a video says about something — pass a list to answer \"what does this channel say about X\" in a single call (get the ids from list_channel_videos first).",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -473,7 +473,7 @@ const TOOLS = [
   {
     "name": "ask_video",
     "title": "Ask a question about an analyzed video",
-    "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence: a visual claim must match a real recorded frame and a spoken one a real transcript segment, or it is dropped. When nothing survives, the answer says the evidence is insufficient rather than guessing. Spends one Watch question from the plan.",
+    "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence: a visual claim must match a real recorded frame and a spoken one a real transcript segment, or it is dropped. When nothing survives, the answer says the evidence is insufficient rather than guessing. Costs 6 AI Units per question.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
