@@ -1,6 +1,6 @@
 {
   "name": "@vidwords/mcp",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MCP proxy for VidWords — search YouTube transcripts and read a video's frames, with clickable timestamp citations",
   "type": "module",
   "main": "src/index.js",

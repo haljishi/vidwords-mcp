@@ -5,9 +5,10 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-com.vidwords%2Fyoutube-blue)](https://registry.modelcontextprotocol.io)
 [![Docs](https://img.shields.io/badge/docs-vidwords.com-4f46e5)](https://vidwords.com/resources/youtube-mcp-server?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 
-A language model cannot watch a video. Point it at this endpoint and it gains nine tools for
-searching transcripts, reading a video's **frames** — slides, charts, demos, on-screen text — and
-answering questions with citations that are verified before you see them.
+A language model cannot watch a video. Point it at this endpoint and it gains twelve tools for
+searching transcripts, searching the videos you have already saved, reading a video's **frames** —
+slides, charts, demos, on-screen text — and answering questions with citations that are verified
+before you see them.
 
 No integration code. No scraping. No proxy pool.
 
@@ -25,8 +26,8 @@ manifest, configuration reference and issue tracker for that endpoint.
 
 **Most clients need no token at all.** The server speaks OAuth, so the client registers itself,
 sends you to VidWords to sign in, and stores a credential it refreshes on its own. You can create
-the account during that sign-in step. The free plan includes monthly credits and 10 Watch minutes,
-so you can wire this up and use it before paying anything.
+the account during that sign-in step. The free plan includes 25 Cloud Requests and 200 AI Units a
+month, so you can wire this up and use it before paying anything.
 
 ### claude.ai, ChatGPT and Claude Desktop — add a connector, nothing to paste
 
@@ -173,23 +174,37 @@ Ready-made config files live in [`examples/`](./examples).
 
 ---
 
-## The nine tools
+## The twelve tools
+
+Two balances pay for them: a **Cloud Request** fetches one video's transcript, and **AI Units**
+pay for reading frames and for transcribing audio. A video the account has already fetched is in
+its Library, and **reading it again is free** — another time range, another page, a search after a
+fetch. Every metered result reports what it `charged`.
 
 | Tool | What it does | Cost |
 | --- | --- | --- |
-| `search_transcript` | Find where a video discusses something. Takes one video **or a list of up to 25**, so one call can answer a question across a whole channel. Returns the matching moments with timestamps, quoted context, and `youtube.com/watch?v=…&t=…s` deep links. | 1 credit per video |
-| `get_transcript` | Full transcript text for up to 25 videos in one call. | 1 credit per video |
-| `list_channel_videos` | Resolve a channel handle, URL or `UC…` id to its recent uploads. | Free · Starter and up |
+| `search_transcript` | Find where a video discusses something. Takes one video **or a list of up to 25**, so one call can answer a question across a whole channel. Returns the matching moments with timestamps, quoted context, and `youtube.com/watch?v=…&t=…s` deep links. Optional `from`/`to`. | 1 Cloud Request per new video |
+| `get_transcript` | Transcript text for up to 25 videos, or the span between two timecodes. `lang` picks a caption track, `maxChars` pages a long transcript, `source: "audio"` transcribes the speech itself. | 1 Cloud Request per new video |
+| `search_library` | Full-text search across every transcript the account has already saved, with timestamps and deep links. | Free |
+| `list_library` | The account's saved videos, newest first. | Free |
+| `list_languages` | The caption tracks a video has, and which are auto-generated (the speech) versus uploaded (possibly translations). | Free |
+| `list_channel_videos` | Resolve a channel handle, URL or `UC…` id to its recent uploads. | 1 Cloud Request · Starter and up |
 | `list_watchlists` | The account's Radar watchlists and how much each has recorded. | Free |
 | `watchlist_activity` | Newest uploads Radar has recorded for one watchlist. | Free |
-| `account` | Plan and remaining credits, so the agent can price a job before running it. | Free |
-| `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. | Watch minutes |
-| `get_analysis` | Read a finished analysis: chapters, key points, timestamped evidence. | Free |
+| `account` | Plan and both balances, so the agent can price a job before running it. | Free |
+| `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `estimateOnly: true` returns the price instead, without starting anything. | 3 AI Units per minute of video (Deep: 30) · estimate free |
+| `get_analysis` | Read a finished analysis: chapters, key points, timestamped evidence. `waitSeconds` (up to 25) holds the call until it is ready instead of polling. | Free |
 | `ask_video` | Ask a question against a finished analysis. Citations are verified against stored evidence or dropped. | 1 Watch question |
+
+### Check the Library first
+
+`search_library` and `list_library` read what the account already has, for nothing. An agent
+that searches the Library before fetching a video again answers "what did that interview I
+watched last week say about pricing" without spending anything, and without the round trip.
 
 ### Prefer `search_transcript` over `get_transcript`
 
-Both cost one credit per video, so there is no billing reason to choose. The reason is context.
+Both cost one Cloud Request per new video, so there is no billing reason to choose. The reason is context.
 Ask "what did this two-hour interview say about pricing?" and `get_transcript` returns roughly
 20,000 words, of which perhaps 300 are about pricing — those 300 now compete for attention with
 19,700 that are not, and the answer gets worse, slower and more expensive to generate.
@@ -208,7 +223,36 @@ Both transcript tools take optional `from` and `to` timecodes — seconds (`615`
 
 These are the same formats the tools print back, so a timestamp out of one answer can be
 pasted straight into the next question. A timecode that cannot be parsed is refused before
-anything is fetched, so a typo costs no credit — it never silently widens to the whole video.
+anything is fetched, so a typo costs nothing — it never silently widens to the whole video.
+
+### Page a long transcript instead of guessing ranges
+
+`get_transcript` takes `maxChars`. A result cut short says `truncated: true` and carries
+`nextFrom`, the second to continue from; pass it back as `from`. The cut always lands between
+captions, and every page after the first is a re-read of a video already in the Library — free.
+
+```json
+{ "videos": ["dQw4w9WgXcQ"], "maxChars": 20000 }
+```
+
+### Which language you got, and why
+
+A caption track's language is not necessarily the language spoken. An **auto-generated** track
+transcribes the speech; an **uploaded** one may be a translation — some videos carry a dozen
+community translations and no track in the language actually spoken. So every transcript says
+why it is the track it is:
+
+- `selectionReason`: `requested`, `spoken_language` (it matches the speech), `caption_fallback`
+  (no track is known to match the speech — English, if present, was picked for readability),
+  `translated` or `audio_transcription`.
+- `spokenLanguage`: the language being spoken when it is known, otherwise `null` — not a guess.
+- `lang` asks for a track. If the video has none in that language, `get_transcript` answers
+  `language_unavailable` with the `availableLanguages` it does have, and charges nothing.
+- `source: "audio"` transcribes what is said instead of reading captions — the way to get the
+  original words when every caption is a translation. It is priced like any audio transcription
+  (3 AI Units per minute of video, on top of the Cloud Request) and passing it is the consent.
+
+`list_languages` answers the same question for free, from what is already stored.
 
 ### One call across a channel
 
@@ -219,9 +263,9 @@ X" without a round trip per video. Get the ids from `list_channel_videos` first:
 { "video": ["VIDEO_ID_1", "VIDEO_ID_2", "VIDEO_ID_3"], "query": "pricing" }
 ```
 
-Each video is billed at the usual 1 credit, and one unavailable video is reported in its own
-row rather than failing the call — the others were fetched and charged for, so you still get
-them.
+Each new video is billed at the usual 1 Cloud Request, and one unavailable video is reported in
+its own row rather than failing the call — the others were fetched and charged for, so you still
+get them.
 
 ### It reads the picture, not only the captions
 
@@ -243,21 +287,36 @@ what it is told without the scepticism a human reader applies.
   a `user:pass` pair. Clients that signed in carry their own credential and this does not apply.
 - **Verify your email first.** Until you click the verification link every call returns `403`
   with `{"error":"email_unverified"}` — the most common first-call failure on a new account.
-- **Credits are one pool** shared with the REST API and the website. One credit is one transcript.
-  Frame analysis draws Watch minutes instead, and a run refused before it starts costs nothing.
-- **Rate limit: 30 requests / 10s** — deliberately looser than the REST API's 5, because the server
-  is stateless and a client re-runs `initialize` before every call. `analyze_video` has its own
-  ceiling of 10 starts per minute, shared with the REST route.
+- **Balances are shared** with the REST API and the website. One Cloud Request is one new
+  transcript; frame analysis and audio transcription spend AI Units. A run refused before it
+  starts costs nothing, and `analyze_video` with `estimateOnly: true` quotes the price for free.
+- **Rate limit per minute, by plan:** Free 60, Starter 200, Pro 500, Team 1,000 requests. The
+  server is stateless, so a client re-runs `initialize` before every call and one tool call is
+  several requests. `analyze_video` has its own ceiling of 10 starts per minute, shared with the
+  REST route.
 - **RapidAPI tokens are refused here.** That identity is metered per call and has no account
   behind it, neither of which survives a tool-calling session. Use a VidWords API token.
 - **Stateless by design.** No resumable SSE streams, no session to delete; every tool answers in
   one shot. `GET` and `DELETE` return a JSON-RPC error rather than an HTML 404.
-- **Captions have to exist.** For a video with no caption track, a signed-in account can transcribe
-  from audio instead — priced by length, quoted before you spend.
+- **No captions, or the wrong ones.** For a video with no caption track, pass
+  `transcribeAudio: true` to transcribe it from the audio; to replace captions that exist (all
+  uploaded translations, say), pass `source: "audio"`. Both are paid features, priced per minute
+  of video, and never run without being asked for.
 
 Full numbers: [pricing](https://vidwords.com/pricing?utm_source=github&utm_medium=readme&utm_campaign=mcp).
 
 ---
+
+## Prompts
+
+The server also publishes three prompts, which clients such as Claude show as ready-made actions.
+Each tells the model which tools to use and in what order, cheapest first.
+
+| Prompt | Arguments | What it does |
+| --- | --- | --- |
+| `summarize_video` | `video` | A timestamped summary of one video, read the cheapest way available. |
+| `research_channel` | `channel`, `topic` | What a channel has said about a topic, with cited moments. |
+| `find_in_my_library` | `topic` | Searches everything already saved — free. |
 
 ## Agent skill
 

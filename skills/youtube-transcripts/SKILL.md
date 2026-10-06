@@ -29,7 +29,16 @@ if MCP is not available to you — see https://vidwords.com/api-docs.
 
 ## Choosing a tool
 
-**`search_transcript` is the default.** Reach for it whenever the question is
+**Check the Library first.** `search_library` searches every transcript the account
+has already saved, and `list_library` lists those videos — both free. If the user
+asks about something they watched or researched before, the answer is often
+already there, and fetching the video again would only repeat work.
+
+```json
+{ "query": "pricing model" }
+```
+
+**`search_transcript` is the default for a video's own words.** Reach for it whenever the question is
 "what does this video say about X".
 
 ```json
@@ -39,7 +48,8 @@ if MCP is not available to you — see https://vidwords.com/api-docs.
 It returns the matching moments, each with `timestamp`, `startSeconds` and a
 `youtube.com/watch?v=…&t=…s` url. Cite those urls.
 
-`get_transcript` returns the whole text and costs the same. A two-hour interview
+`get_transcript` returns the whole text and costs the same — one Cloud Request
+for a video the account does not have yet, nothing for one it does. A two-hour interview
 is ~20,000 words of which perhaps 300 answer the question, and the other 19,700
 compete for your attention and degrade the answer. Use it only when the full text
 is genuinely the deliverable: an export, a diff, a corpus.
@@ -59,8 +69,31 @@ so a timestamp from one answer can be pasted into the next question.
 ```
 
 When the user names a time span, **pass it** rather than fetching everything and
-filtering yourself. It is the same credit either way, but it keeps your context
-clear and the reply focused.
+filtering yourself. It costs the same either way, but it keeps your context clear
+and the reply focused.
+
+## Page a long transcript
+
+When you do need the whole text of a long video, pass `maxChars`. A result cut
+short has `truncated: true` and `nextFrom` (seconds) — send that back as `from`
+for the next page. Pages after the first are re-reads of a video the account
+already has, so they are free; each result's `charged` field says so.
+
+## Which language you got
+
+A caption track's language is not necessarily the one spoken: an auto-generated
+track transcribes the speech, an uploaded one may be a translation. Read
+`selectionReason` before telling the user what language a video is in:
+
+- `spoken_language` or `requested` — the track is what it says.
+- `caption_fallback` — **no track is known to match the speech**; English was
+  picked for readability. Do not report its `language` as the video's language.
+- `spokenLanguage` is the spoken language when known, `null` when not.
+
+To get the words actually spoken when every caption is a translation, pass
+`source: "audio"` to `get_transcript`. It is paid (AI Units per minute of video,
+plus the Cloud Request) and passing it is the user's consent, so ask first.
+`list_languages` shows a video's tracks for free when we already hold them.
 
 A timecode that cannot be parsed is refused **before** anything is fetched, so a
 typo costs nothing. It never silently widens to the whole video.
@@ -74,8 +107,8 @@ this channel said about X" without a round trip per video:
 { "video": ["ID_1", "ID_2", "ID_3"], "query": "acquisition" }
 ```
 
-Get the ids from `list_channel_videos` first (free; needs a Starter plan or
-better). Each video in the list bills the usual 1 credit. If one video is
+Get the ids from `list_channel_videos` first (1 Cloud Request; needs a Starter
+plan or better). Each new video in the list bills the usual 1 Cloud Request. If one video is
 unavailable it comes back as its own row with an `error` — the rest were fetched
 and charged for, so read them rather than discarding the call.
 
@@ -88,20 +121,26 @@ returning either an answer with verified citations or an explicit statement that
 the evidence is insufficient. It will refuse rather than guess; treat a refusal as
 the correct answer, not a failure to retry.
 
-These spend Watch minutes rather than transcript credits, and analysis is
-asynchronous: start the job, then poll `get_analysis` until `status` is `ready`.
+These spend AI Units rather than Cloud Requests — 3 per minute of video for a
+standard run, 30 for Deep. Before a long video or a Deep run, call
+`analyze_video` with `estimateOnly: true`: it returns the exact price, free, and
+starts nothing. Analysis is asynchronous: start the job, then call
+`get_analysis` with `waitSeconds` (up to 25) so the server holds the call until it
+is ready, instead of polling in a tight loop.
 
 ## Costs, so you can budget
 
 | call | cost |
 |---|---|
-| `search_transcript`, `get_transcript` | 1 credit per video |
-| `list_channel_videos`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
-| `analyze_video` | Watch minutes |
+| `search_transcript`, `get_transcript` | 1 Cloud Request per video the account does not have yet; free for one it does |
+| `search_library`, `list_library`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
+| `list_channel_videos` | 1 Cloud Request |
+| `analyze_video` | 3 AI Units per minute of video (Deep: 30); `estimateOnly` is free |
 | `ask_video` | 1 Watch question |
+| audio transcription (`transcribeAudio`, `source: "audio"`) | 3 AI Units per minute of video, plus the Cloud Request |
 
-Failed lookups — no captions, invalid id — are free. Call `account` to read the
-plan and remaining balance before a large job.
+Failed lookups — no captions, invalid id, a language the video lacks — are free.
+Call `account` to read the plan and both balances before a large job.
 
 ## Errors worth acting on
 
@@ -112,16 +151,21 @@ recover instead of retrying blindly:
   shortfall; do not retry the same call.
 - `invalid_timecode` — carries `field` and `value`. Fix the timecode and retry.
 - `invalid_id` — the string was not a YouTube URL or id. Re-read the user's input.
+- `language_unavailable` — the video has no track in the `lang` you asked for. It
+  carries `availableLanguages`; pick one, or offer `source: "audio"` if none is
+  auto-generated. Nothing was charged.
+- `audio_not_allowed` — transcribing audio needs a paid plan or purchased AI
+  Units. Tell the user; do not retry.
 - `plan_required` — the account's plan does not include that call.
 - `email_unverified` (HTTP 403) — the account exists but has not confirmed its
   email. Nothing can be spent until it does; say so rather than retrying.
 
 ## Limits, stated plainly
 
-- Public videos with an accessible caption track. A video with captions disabled
-  cannot be read at any price.
+- Public videos. A video with no captions can be transcribed from its audio on a
+  paid plan (`transcribeAudio: true`); otherwise it cannot be read.
 - Max 25 videos per call.
-- Rate limit 30 requests / 10 seconds.
+- Rate limit per minute by plan: Free 60, Starter 200, Pro 500, Team 1,000.
 - Rows are the creator's words. Quoting and analysis are normal use; republishing
   a whole transcript as your own content is not.
 - Not affiliated with YouTube or Google.

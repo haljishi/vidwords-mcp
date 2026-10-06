@@ -1,7 +1,7 @@
 {
   "identifier": "vidwords-youtube",
   "name": "VidWords YouTube",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Search a YouTube video's transcript and read its frames — slides, charts, demos and on-screen text — with every answer citing a clickable timestamp.",
   "author": "VidWords",
   "authorUrl": "https://vidwords.com",
@@ -18,14 +18,53 @@
     "remote"
   ],
   "tools": [
-    { "name": "search_transcript", "description": "Search one YouTube video for a phrase or topic and return the matching moments with timestamps and deep links you can cite." },
-    { "name": "get_transcript", "description": "Fetch the complete transcript text for one or more YouTube videos (up to 25 per call)." },
-    { "name": "list_channel_videos", "description": "Resolve a YouTube channel handle, URL or id to its recent uploads." },
-    { "name": "list_watchlists", "description": "The account's Radar watchlists — the YouTube channels it monitors for new uploads." },
-    { "name": "watchlist_activity", "description": "The most recent videos Radar has recorded for one watchlist, newest first." },
-    { "name": "account", "description": "The plan and credit balance for the calling token, so an agent can price a batch before running it." },
-    { "name": "analyze_video", "description": "Start a deep visual analysis of a YouTube video: chapters, key moments, on-screen text and evidence tied to exact timestamps." },
-    { "name": "get_analysis", "description": "Fetch the analysis started by analyze_video once it is ready." },
-    { "name": "ask_video", "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence." }
+    {
+      "name": "search_transcript",
+      "description": "Search one or many YouTube videos for a phrase or topic and return the matching moments with timestamps and deep links you can cite."
+    },
+    {
+      "name": "get_transcript",
+      "description": "Fetch the complete transcript text for one or more YouTube videos, or just the part between two timecodes."
+    },
+    {
+      "name": "list_channel_videos",
+      "description": "Resolve a YouTube channel handle, URL or id to its recent uploads."
+    },
+    {
+      "name": "list_languages",
+      "description": "The caption tracks a video has — language code, name, and whether it is auto-generated — so you can pass the right `lang` to get_transcript instead of guessing."
+    },
+    {
+      "name": "search_library",
+      "description": "Full-text search across every transcript this account has already saved, returning the matching moments with timestamps and deep links."
+    },
+    {
+      "name": "list_library",
+      "description": "The videos this account has saved, newest first, with title, channel, language and whether the transcript is searchable with search_library."
+    },
+    {
+      "name": "list_watchlists",
+      "description": "The account’s Radar watchlists — the YouTube channels it monitors for new uploads — with how many new videos each has recorded."
+    },
+    {
+      "name": "watchlist_activity",
+      "description": "The most recent videos Radar has recorded for one watchlist, newest first."
+    },
+    {
+      "name": "account",
+      "description": "The plan, Cloud Request balance and AI Processing balance for the calling token."
+    },
+    {
+      "name": "analyze_video",
+      "description": "Start a deep visual analysis of a YouTube video: chapters, key moments, on-screen text and evidence tied to exact timestamps."
+    },
+    {
+      "name": "get_analysis",
+      "description": "Fetch the analysis started by analyze_video."
+    },
+    {
+      "name": "ask_video",
+      "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence: a visual claim must match a real recorded frame and a spoken one a real transcript segment, or it is dropped."
+    }
   ]
 }
