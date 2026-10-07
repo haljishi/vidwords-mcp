@@ -5,6 +5,9 @@
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-com.vidwords%2Fyoutube-blue)](https://registry.modelcontextprotocol.io)
 [![Docs](https://img.shields.io/badge/docs-vidwords.com-4f46e5)](https://vidwords.com/resources/youtube-mcp-server?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 
+[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge)](https://cursor.com/en/install-mcp?name=vidwords&config=eyJ1cmwiOiJodHRwczovL3ZpZHdvcmRzLmNvbS9tY3AifQ%3D%3D)
+[![Add to VS Code](https://img.shields.io/badge/Add_to-VS_Code-0098FF?style=for-the-badge)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522vidwords%2522%252C%2522type%2522%253A%2522http%2522%252C%2522url%2522%253A%2522https%253A%252F%252Fvidwords.com%252Fmcp%2522%257D)
+
 A language model cannot watch a video. Point it at this endpoint and it gains twelve tools for
 searching transcripts, searching the videos you have already saved, reading a video's **frames** —
 slides, charts, demos, on-screen text — and answering questions with citations that are verified
@@ -13,9 +16,11 @@ before you see them.
 No integration code. No scraping. No proxy pool.
 
 ```
-POST https://vidwords.com/mcp
-Authorization: Basic <your-api-token>
+https://vidwords.com/mcp
 ```
+
+That URL is the whole configuration. Clients sign in over OAuth — no key to find or paste — and
+headless ones can send `Authorization: Basic <your-api-token>` instead.
 
 Remote-only and hosted — there is nothing to install or self-host. This repository is the public
 manifest, configuration reference and issue tracker for that endpoint.
@@ -50,7 +55,9 @@ claude mcp add --transport http vidwords https://vidwords.com/mcp
 
 Then type `/mcp` in a session and choose **Authenticate**.
 
-### Cursor — `.cursor/mcp.json`
+### Cursor — one click, or `.cursor/mcp.json`
+
+Use the **Add to Cursor** button above, or:
 
 ```json
 {
@@ -65,6 +72,27 @@ Then type `/mcp` in a session and choose **Authenticate**.
 Cursor shows the server as **Needs login** — click that once and it runs the OAuth flow in your
 browser. Because this file carries no secret, it is safe to commit, which the header form below
 is not.
+
+### VS Code
+
+Use the **Add to VS Code** button above, or put this in `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "vidwords": { "type": "http", "url": "https://vidwords.com/mcp" }
+  }
+}
+```
+
+VS Code asks you to sign in the first time the server starts.
+
+### Codex CLI
+
+```bash
+codex mcp add vidwords --url https://vidwords.com/mcp
+codex mcp login vidwords
+```
 
 ## A static token instead
 
@@ -342,6 +370,8 @@ pulling a whole two-hour transcript into its context.
 - [Setup in Claude Code](https://vidwords.com/resources/youtube-mcp-claude-code?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 - [Setup in Claude Desktop](https://vidwords.com/resources/youtube-mcp-claude?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 - [Setup in Cursor](https://vidwords.com/resources/youtube-mcp-cursor?utm_source=github&utm_medium=readme&utm_campaign=mcp)
+- [Setup in ChatGPT](https://vidwords.com/resources/youtube-mcp-chatgpt?utm_source=github&utm_medium=readme&utm_campaign=mcp)
+- [Setup in Codex CLI](https://vidwords.com/resources/youtube-mcp-codex?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 - [REST API documentation](https://vidwords.com/api-docs?utm_source=github&utm_medium=readme&utm_campaign=mcp)
 
 ## Support
