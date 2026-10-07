@@ -141,7 +141,7 @@ is ready, instead of polling in a tight loop.
 | `search_transcript`, `get_transcript` | 1 Cloud Request per video the account does not have yet; free for one it does |
 | `search_library`, `list_library`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
 | `list_channel_videos` | 1 Cloud Request |
-| `analyze_video` | 1 Cloud Request + AI Units per minute: Quick 2.1, Standard 3, Deep 30 (plus audio transcription if needed; see `maxAiUnits`); returning an existing analysis and `estimateOnly` are free |
+| `analyze_video` | 1 Cloud Request + AI Units per minute: Quick 2.1, Standard 3, Deep 30 (plus audio transcription if needed; see `maxAiUnits`); starting the same analysis again on the account (same video, mode and range) and `estimateOnly` are free |
 | `ask_video` | 6 AI Units per question |
 | audio transcription (`transcribeAudio`, `source: "audio"`) | 3 AI Units per minute of video, plus the Cloud Request |
 
