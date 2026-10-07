@@ -34,18 +34,52 @@ sends you to VidWords to sign in, and stores a credential it refreshes on its ow
 the account during that sign-in step. The free plan includes 25 Cloud Requests and 200 AI Units a
 month, so you can wire this up and use it before paying anything.
 
-### claude.ai, ChatGPT and Claude Desktop — add a connector, nothing to paste
+### Claude (claude.ai and Claude Desktop)
 
-Add this as a custom connector:
+1. **Customize → Connectors**, then **+ Add → Add custom connector**.
+2. URL: `https://vidwords.com/mcp`
+3. Under the OAuth client options choose **Register automatically**. VidWords registers each
+   connector itself (dynamic client registration), so Claude's default "published identity"
+   option will not connect.
+4. Connect, sign in to VidWords, and approve.
 
+On a Team or Enterprise plan an owner adds it first, under **Organization settings → Connectors →
+Add → Custom → Web**; members then connect from **Customize → Connectors**.
+
+### ChatGPT
+
+1. On chatgpt.com, open **[Plugins](https://chatgpt.com/plugins)**, select **+**, then **Add custom MCP server**.
+2. Name: `VidWords` · Server URL: `https://vidwords.com/mcp` · Authentication: **OAuth**.
+3. Accept the risk warning and select **Create as a plugin**, then sign in to VidWords and approve.
+4. **Install** the new plugin, then type `@` in a chat and pick VidWords.
+
+Do this on the web; on a workspace account an admin may need to allow custom MCP servers.
+
+Either way, the host registers itself, sends you to VidWords to sign in, and shows a consent
+screen naming exactly what it is asking for. Registration alone grants nothing — access begins
+only when a signed-in person clicks **Approve**, and live connections can be revoked from the
+[API & MCP page](https://vidwords.com/api-keys?utm_source=github&utm_medium=readme&utm_campaign=mcp)
+with immediate effect.
+
+### Claude Desktop from a config file
+
+`claude_desktop_config.json` only runs **local (stdio)** servers — a remote `url` entry there is
+not supported (and has been reported to wipe the file's `mcpServers` section). To declare the
+server in the file anyway, bridge it with [`mcp-remote`](https://www.npmjs.com/package/mcp-remote),
+which runs the same sign-in flow in your browser — still nothing to paste:
+
+```json
+{
+  "mcpServers": {
+    "vidwords": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://vidwords.com/mcp"]
+    }
+  }
+}
 ```
-https://vidwords.com/mcp
-```
 
-The host registers itself, sends you to VidWords to sign in, and shows a consent screen naming
-exactly what it is asking for. Registration alone grants nothing — access begins only when a
-signed-in person clicks **Approve**, and live connections can be revoked from your API page with
-immediate effect.
+Quit and reopen Claude Desktop after editing the file.
 
 ### Claude Code
 
@@ -98,7 +132,9 @@ codex mcp login vidwords
 
 For CI, a container, or a client with no OAuth support, authenticate with a header. Create an
 account at **[vidwords.com/register](https://vidwords.com/register?utm_source=github&utm_medium=readme&utm_campaign=mcp)**,
-**verify your email**, then copy the token from your profile.
+**verify your email**, then create a key on the
+[API & MCP page](https://vidwords.com/api-keys?utm_source=github&utm_medium=readme&utm_campaign=mcp).
+A key's value is shown once, when it is created.
 
 ### Claude Code
 
@@ -109,13 +145,15 @@ claude mcp add --transport http vidwords https://vidwords.com/mcp \
 
 ### Claude Desktop — `claude_desktop_config.json`
 
+The same `mcp-remote` bridge as above, with the header instead of the sign-in:
+
 ```json
 {
   "mcpServers": {
     "vidwords": {
-      "type": "http",
-      "url": "https://vidwords.com/mcp",
-      "headers": { "Authorization": "Basic YOUR_API_TOKEN" }
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://vidwords.com/mcp",
+               "--header", "Authorization:Basic YOUR_API_TOKEN"]
     }
   }
 }
@@ -220,7 +258,7 @@ fetch. Every metered result reports what it `charged`.
 | `list_watchlists` | The account's Radar watchlists and how much each has recorded. | Free |
 | `watchlist_activity` | Newest uploads Radar has recorded for one watchlist. | Free |
 | `account` | Plan and both balances, so the agent can price a job before running it. | Free |
-| `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `estimateOnly: true` returns the price instead, without starting anything. | 3 AI Units per minute of video (Deep: 30) · estimate free |
+| `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `mode` is `quick`, `smart`, `deep` or `auto`. `estimateOnly: true` returns the price instead, without starting anything. | AI Units per minute of video: Quick 2.1, Standard 3, Deep 30 (Pro or Team) · estimate free |
 | `get_analysis` | Read a finished analysis: chapters, key points, timestamped evidence. `waitSeconds` (up to 25) holds the call until it is ready instead of polling. | Free |
 | `ask_video` | Ask a question against a finished analysis. Citations are verified against stored evidence or dropped. | 6 AI Units per question |
 

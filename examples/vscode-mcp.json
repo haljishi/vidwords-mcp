@@ -1,6 +1,7 @@
 {
-  "mcpServers": {
+  "servers": {
     "vidwords": {
+      "type": "http",
       "url": "https://vidwords.com/mcp"
     }
   }

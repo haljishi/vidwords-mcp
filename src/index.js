@@ -572,7 +572,7 @@ const server = new Server({ name: 'vidwords-youtube', version: '1.1.0' }, { capa
 
 const MISSING_TOKEN =
   'VIDWORDS_API_TOKEN is not set. Create a free account at https://vidwords.com/register, ' +
-  'verify your email, then copy the token from your profile and pass it to this server as ' +
+  'verify your email, then create a key at https://vidwords.com/api-keys and pass it to this server as ' +
   'the VIDWORDS_API_TOKEN environment variable.';
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
