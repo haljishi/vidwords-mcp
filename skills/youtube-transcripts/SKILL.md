@@ -1,6 +1,6 @@
 ---
 name: youtube-transcripts
-description: Read and search YouTube videos through VidWords. Use when the user supplies a YouTube URL, a bare 11-character video id, a youtu.be or Shorts link, or a channel handle, and wants any of: the transcript or subtitles (TXT/SRT/VTT), what a video says about a topic, a quote with a citable timestamp, only the words spoken between two timecodes such as "10:20 to 11:00", or the same question answered across many videos in a channel or playlist.
+description: 'Read and search YouTube videos through VidWords. Use when the user supplies a YouTube URL, a bare 11-character video id, a youtu.be or Shorts link, or a channel handle, and wants any of: the transcript or subtitles (TXT/SRT/VTT), what a video says about a topic, a quote with a citable timestamp, only the words spoken between two timecodes such as "10:20 to 11:00", or the same question answered across many videos in a channel or playlist.'
 ---
 
 # Reading YouTube videos
