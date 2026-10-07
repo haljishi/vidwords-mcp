@@ -171,8 +171,10 @@ recover instead of retrying blindly:
 
 ## Limits, stated plainly
 
-- Public videos. A video with no captions can be transcribed from its audio on a
-  paid plan (`transcribeAudio: true`); otherwise it cannot be read.
+- Public videos. A video with no captions can be transcribed from its audio
+  (`transcribeAudio: true`, 3 AI Units per minute) on a paid plan or with
+  purchased AI Units; without that, `get_transcript` reports no transcript —
+  but `analyze_video` can still analyse it from its picture and soundtrack.
 - Max 25 videos per call.
 - Rate limit per minute by plan: Free 60, Starter 200, Pro 500, Team 1,000.
 - Rows are the creator's words. Quoting and analysis are normal use; republishing
