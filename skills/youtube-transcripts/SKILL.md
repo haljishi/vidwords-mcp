@@ -133,7 +133,8 @@ analysed — from its picture and soundtrack, at no extra charge. Only pass
 that adds 3 AI Units per minute of video, and the estimate then reports
 `audioTranscription: "unknown"` (captions not held yet) with `maxAiUnits`
 including the transcription. Budget with `maxAiUnits` and tell the user before
-you start. Analysis is asynchronous: start the job, then call
+you start, as an estimate rather than a cap: the transcription charge follows
+the transcribed audio, which can run a minute past the listed duration. Analysis is asynchronous: start the job, then call
 `get_analysis` with `waitSeconds` (up to 25) so the server holds the call until it
 is ready, instead of polling in a tight loop.
 
