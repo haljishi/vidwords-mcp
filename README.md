@@ -145,7 +145,10 @@ claude mcp add --transport http vidwords https://vidwords.com/mcp \
 
 ### Claude Desktop — `claude_desktop_config.json`
 
-The same `mcp-remote` bridge as above, with the header instead of the sign-in:
+The same `mcp-remote` bridge as above, with the key instead of the sign-in. Keep the key in
+`env`: Claude Desktop on Windows (and Cursor, and the Codex CLI) do not escape spaces inside
+`args`, so `Basic YOUR_API_TOKEN` written there splits in two — the `mcp-remote` README's own
+workaround:
 
 ```json
 {
@@ -153,7 +156,8 @@ The same `mcp-remote` bridge as above, with the header instead of the sign-in:
     "vidwords": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "https://vidwords.com/mcp",
-               "--header", "Authorization:Basic YOUR_API_TOKEN"]
+               "--header", "Authorization:${VIDWORDS_MCP_AUTH}"],
+      "env": { "VIDWORDS_MCP_AUTH": "Basic YOUR_API_TOKEN" }
     }
   }
 }
@@ -230,7 +234,8 @@ The generic [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge work
     "vidwords": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "https://vidwords.com/mcp",
-               "--header", "Authorization:Basic YOUR_API_TOKEN"]
+               "--header", "Authorization:${VIDWORDS_MCP_AUTH}"],
+      "env": { "VIDWORDS_MCP_AUTH": "Basic YOUR_API_TOKEN" }
     }
   }
 }
@@ -243,7 +248,8 @@ Ready-made config files live in [`examples/`](./examples).
 ## The twelve tools
 
 Two balances pay for them: a **Cloud Request** fetches one video's transcript, and **AI Units**
-pay for reading frames and for transcribing audio. A video the account has already fetched is in
+pay for reading frames and for transcribing audio — a fresh frame analysis spends one of each kind:
+1 Cloud Request for its transcript, plus AI Units per minute of video. A video the account has already fetched is in
 its Library, and **reading it again is free** — another time range, another page, a search after a
 fetch. Every metered result reports what it `charged`.
 
@@ -258,7 +264,7 @@ fetch. Every metered result reports what it `charged`.
 | `list_watchlists` | The account's Radar watchlists and how much each has recorded. | Free |
 | `watchlist_activity` | Newest uploads Radar has recorded for one watchlist. | Free |
 | `account` | Plan and both balances, so the agent can price a job before running it. | Free |
-| `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `mode` is `quick`, `smart`, `deep` or `auto`. `estimateOnly: true` returns the price instead, without starting anything. | AI Units per minute of video: Quick 2.1, Standard 3, Deep 30 (Pro or Team) · estimate free |
+| `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `mode` is `quick`, `smart`, `deep` or `auto`; Deep runs on any plan with enough AI Units. `estimateOnly: true` returns the price instead, without starting anything. | 1 Cloud Request, then AI Units per minute: Quick 2.1, Standard 3, Deep 30 · estimate free |
 | `get_analysis` | Read a finished analysis: chapters, key points, timestamped evidence. `waitSeconds` (up to 25) holds the call until it is ready instead of polling. | Free |
 | `ask_video` | Ask a question against a finished analysis. Citations are verified against stored evidence or dropped. | 6 AI Units per question |
 
@@ -354,7 +360,8 @@ what it is told without the scepticism a human reader applies.
 - **Verify your email first.** Until you click the verification link every call returns `403`
   with `{"error":"email_unverified"}` — the most common first-call failure on a new account.
 - **Balances are shared** with the REST API and the website. One Cloud Request is one new
-  transcript; frame analysis and audio transcription spend AI Units. A run refused before it
+  transcript; frame analysis spends 1 Cloud Request plus AI Units, and audio transcription spends
+  AI Units on top of its Cloud Request. A run refused before it
   starts costs nothing, and `analyze_video` with `estimateOnly: true` quotes the price for free.
 - **Rate limit per minute, by plan:** Free 60, Starter 200, Pro 500, Team 1,000 requests. The
   server is stateless, so a client re-runs `initialize` before every call and one tool call is

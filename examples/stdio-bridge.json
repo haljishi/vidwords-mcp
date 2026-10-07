@@ -1,5 +1,5 @@
 {
-  "_comment": "For clients that cannot send a custom HTTP header. Bridges the remote server over stdio with mcp-remote.",
+  "_comment": "For clients that cannot send a custom HTTP header. Bridges the remote server over stdio with mcp-remote. The key stays in env because some clients (Claude Desktop on Windows, Cursor) do not escape spaces inside args.",
   "mcpServers": {
     "vidwords": {
       "command": "npx",
@@ -8,8 +8,9 @@
         "mcp-remote",
         "https://vidwords.com/mcp",
         "--header",
-        "Authorization:Basic YOUR_API_TOKEN"
-      ]
+        "Authorization:${VIDWORDS_MCP_AUTH}"
+      ],
+      "env": { "VIDWORDS_MCP_AUTH": "Basic YOUR_API_TOKEN" }
     }
   }
 }

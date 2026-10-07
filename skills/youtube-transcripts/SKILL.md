@@ -123,10 +123,14 @@ returning either an answer with verified citations or an explicit statement that
 the evidence is insufficient. It will refuse rather than guess; treat a refusal as
 the correct answer, not a failure to retry.
 
-These spend AI Units rather than Cloud Requests — per minute of video, 2.1 for
-Quick, 3 for a standard run, 30 for Deep (Deep needs a Pro or Team plan). Before a long video or a Deep run, call
-`analyze_video` with `estimateOnly: true`: it returns the exact price, free, and
-starts nothing. Analysis is asynchronous: start the job, then call
+A fresh analysis spends 1 Cloud Request (for the transcript) plus AI Units per
+minute of video — 2.1 for Quick, 3 for a standard run, 30 for Deep. Deep runs on
+any plan with enough AI Units. Before a long video or a Deep run, call
+`analyze_video` with `estimateOnly: true`: free, it starts nothing, and returns
+`cloudRequests`, `aiUnits` and `maxAiUnits`. Budget with `maxAiUnits`: when
+`breakdown.audioTranscription` is `"unknown"` the video may have no captions, and
+transcribing its audio would add the difference. Tell the user that before you
+start. Analysis is asynchronous: start the job, then call
 `get_analysis` with `waitSeconds` (up to 25) so the server holds the call until it
 is ready, instead of polling in a tight loop.
 
@@ -137,7 +141,7 @@ is ready, instead of polling in a tight loop.
 | `search_transcript`, `get_transcript` | 1 Cloud Request per video the account does not have yet; free for one it does |
 | `search_library`, `list_library`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
 | `list_channel_videos` | 1 Cloud Request |
-| `analyze_video` | AI Units per minute of video: Quick 2.1, Standard 3, Deep 30; `estimateOnly` is free |
+| `analyze_video` | 1 Cloud Request + AI Units per minute: Quick 2.1, Standard 3, Deep 30 (plus audio transcription if needed; see `maxAiUnits`); returning an existing analysis and `estimateOnly` are free |
 | `ask_video` | 6 AI Units per question |
 | audio transcription (`transcribeAudio`, `source: "audio"`) | 3 AI Units per minute of video, plus the Cloud Request |
 
