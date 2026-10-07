@@ -127,10 +127,13 @@ A fresh analysis spends 1 Cloud Request (for the transcript) plus AI Units per
 minute of video — 2.1 for Quick, 3 for a standard run, 30 for Deep. Deep runs on
 any plan with enough AI Units. Before a long video or a Deep run, call
 `analyze_video` with `estimateOnly: true`: free, it starts nothing, and returns
-`cloudRequests`, `aiUnits` and `maxAiUnits`. Budget with `maxAiUnits`: when
-`breakdown.audioTranscription` is `"unknown"` the video may have no captions, and
-transcribing its audio would add the difference. Tell the user that before you
-start. Analysis is asynchronous: start the job, then call
+`cloudRequests`, `aiUnits` and `maxAiUnits`. A video with no captions is still
+analysed — from its picture and soundtrack, at no extra charge. Only pass
+`transcribeAudio: true` when the user wants a word-for-word transcript as well:
+that adds 3 AI Units per minute of video, and the estimate then reports
+`audioTranscription: "unknown"` (captions not held yet) with `maxAiUnits`
+including the transcription. Budget with `maxAiUnits` and tell the user before
+you start. Analysis is asynchronous: start the job, then call
 `get_analysis` with `waitSeconds` (up to 25) so the server holds the call until it
 is ready, instead of polling in a tight loop.
 
@@ -141,7 +144,7 @@ is ready, instead of polling in a tight loop.
 | `search_transcript`, `get_transcript` | 1 Cloud Request per video the account does not have yet; free for one it does |
 | `search_library`, `list_library`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
 | `list_channel_videos` | 1 Cloud Request |
-| `analyze_video` | 1 Cloud Request + AI Units per minute: Quick 2.1, Standard 3, Deep 30 (plus audio transcription if needed; see `maxAiUnits`); starting the same analysis again on the account (same video, mode and range) and `estimateOnly` are free |
+| `analyze_video` | 1 Cloud Request + AI Units per minute: Quick 2.1, Standard 3, Deep 30 (a captionless video costs nothing extra; `transcribeAudio: true` adds 3 per minute — see `maxAiUnits`); starting the same analysis again on the account (same video, mode and range) and `estimateOnly` are free |
 | `ask_video` | 6 AI Units per question |
 | audio transcription (`transcribeAudio`, `source: "audio"`) | 3 AI Units per minute of video, plus the Cloud Request |
 
