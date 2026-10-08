@@ -38,7 +38,11 @@ import {
 const UPSTREAM_URL = process.env.VIDWORDS_MCP_URL || 'https://vidwords.com/mcp';
 const API_TOKEN = process.env.VIDWORDS_API_TOKEN;
 
-// Captured from POST https://vidwords.com/mcp tools/list and prompts/list, 2026-10-06.
+// Captured from POST https://vidwords.com/mcp tools/list and prompts/list, 2026-10-08.
+// Upstream's get_analysis and ask_video also carry _meta.ui (an MCP App view at
+// ui://vidwords/watch-view.html). It is left out here: this proxy declares no
+// `resources` capability, so a client could not fetch that view through it. The
+// tool results — text, deep links and attached frame images — pass through as-is.
 const TOOLS = [
   {
     "name": "search_transcript",
@@ -391,7 +395,7 @@ const TOOLS = [
   {
     "name": "analyze_video",
     "title": "Analyze a video’s frames and speech",
-    "description": "Start a deep visual analysis of a YouTube video: chapters, key moments, on-screen text and evidence tied to exact timestamps. Reads the picture, not just the captions, so it can answer questions about a slide, chart or demo the transcript never mentions. Standard Watch spends 3 AI Units per minute of video; Deep uses 30. Before a long video or a Deep run, call it with estimateOnly: true — free — and tell the user the price. Returns immediately with an analysisId; analysis takes minutes, so call get_analysis with waitSeconds rather than polling in a tight loop. If the video was analyzed before, it comes back ready at once.",
+    "description": "Start a deep visual analysis of a YouTube video: chapters, key moments, on-screen text and evidence tied to exact timestamps. Reads the picture, not just the captions, so it can answer questions about a slide, chart or demo the transcript never mentions. A fresh analysis spends 1 Cloud Request plus AI Units per minute of video — Quick 2.1, Standard 3, Deep 30 — and a captionless video is analyzed from its picture and soundtrack at no extra charge (transcribeAudio adds a word-for-word transcript for 3 more per minute). Before a long video or a Deep run, call it with estimateOnly: true — free — and tell the user the price. Returns immediately with an analysisId; analysis takes minutes, so call get_analysis with waitSeconds rather than polling in a tight loop. Starting the same analysis again on this account (same video, mode and range) returns the existing analysisId free of charge; it may still be running, so poll it the same way.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -402,7 +406,7 @@ const TOOLS = [
         },
         "mode": {
           "default": "smart",
-          "description": "Detail level. \"auto\" picks one from the video’s length and visual pace. \"deep\" needs a Pro or Team plan.",
+          "description": "Detail level. \"auto\" picks one from the video’s length and visual pace. \"deep\" costs 30 AI Units per minute and runs on any plan with enough of them.",
           "type": "string",
           "enum": [
             "quick",
@@ -419,6 +423,11 @@ const TOOLS = [
         "estimateOnly": {
           "default": false,
           "description": "Return what this run WOULD cost — AI Units, Cloud Requests, whether audio transcription may be added, the balance, and the refusal a start would give — without starting it or charging anything.",
+          "type": "boolean"
+        },
+        "transcribeAudio": {
+          "default": false,
+          "description": "If the video has no captions, transcribe its audio first so the analysis comes with a word-for-word, timestamped transcript. Adds 3 AI Units per minute of video, so only set it when the user agreed. Without it a captionless video is still analyzed, from its picture and soundtrack directly, at no extra charge.",
           "type": "boolean"
         }
       },
@@ -438,7 +447,7 @@ const TOOLS = [
   {
     "name": "get_analysis",
     "title": "Read a finished video analysis",
-    "description": "Fetch the analysis started by analyze_video. Free. Pass waitSeconds (up to 25) to have the server hold the call until the analysis finishes or the wait runs out, instead of polling repeatedly. While status is \"queued\" or \"processing\" the analysis field is absent — call again. When \"ready\" it contains the summary, chapters, key points and timestamped evidence.",
+    "description": "Fetch the analysis started by analyze_video. Free. Pass waitSeconds (up to 25) to have the server hold the call until the analysis finishes or the wait runs out, instead of polling repeatedly. While status is \"queued\" or \"processing\" the analysis field is absent — call again. When \"ready\" it contains the summary, chapters, key points and timestamped evidence. Every chapter, evidence item and step carries `at` (\"12:34\"), a `youtubeUrl` that opens the video AT that second, and, when YouTube publishes frames for the video, a `frameUrl` still of that moment; a contact sheet of frames is attached as an image. Cite moments to the user as [12:34](youtubeUrl) links.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -473,7 +482,7 @@ const TOOLS = [
   {
     "name": "ask_video",
     "title": "Ask a question about an analyzed video",
-    "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence: a visual claim must match a real recorded frame and a spoken one a real transcript segment, or it is dropped. When nothing survives, the answer says the evidence is insufficient rather than guessing. Costs 6 AI Units per question.",
+    "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence: a visual claim must match a real recorded frame and a spoken one a real transcript segment, or it is dropped. When nothing survives, the answer says the evidence is insufficient rather than guessing. Each citation carries `at`, a `youtubeUrl` that opens the video at that second and, when available, a `frameUrl` still; the cited frames are attached as images. Cite them to the user as [12:34](youtubeUrl) links. Costs 6 AI Units per question.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
