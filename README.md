@@ -8,7 +8,7 @@
 [![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge)](https://cursor.com/en/install-mcp?name=vidwords&config=eyJ1cmwiOiJodHRwczovL3ZpZHdvcmRzLmNvbS9tY3AifQ%3D%3D)
 [![Add to VS Code](https://img.shields.io/badge/Add_to-VS_Code-0098FF?style=for-the-badge)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522vidwords%2522%252C%2522type%2522%253A%2522http%2522%252C%2522url%2522%253A%2522https%253A%252F%252Fvidwords.com%252Fmcp%2522%257D)
 
-A language model cannot watch a video. Point it at this endpoint and it gains twelve tools for
+A language model cannot watch a video. Point it at this endpoint and it gains thirteen tools for
 searching transcripts, searching the videos you have already saved, reading a video's **frames** —
 slides, charts, demos, on-screen text — and answering questions with citations that are verified
 before you see them.
@@ -221,7 +221,11 @@ docker run --rm -i -e VIDWORDS_API_TOKEN=YOUR_API_TOKEN vidwords-mcp
 ```
 
 The tool schemas are declared inline in the proxy, so `initialize` and `tools/list` answer
-without any credentials and the upstream is not contacted until a tool is actually called.
+without any credentials. Resource discovery is also local; the upstream is contacted when a tool, prompt, or UI resource is requested.
+The proxy also exposes the analysis and account MCP Apps resources. Compatible hosts can render
+interactive cards; the analysis card includes **Show full analysis**. UI resource reads and tool
+calls use the same authenticated upstream, and structured results pass through unchanged.
+
 A call without `VIDWORDS_API_TOKEN` returns a readable error rather than failing the
 handshake. `VIDWORDS_MCP_URL` overrides the endpoint if you are pointing at a non-production
 instance.
@@ -245,7 +249,7 @@ Ready-made config files live in [`examples/`](./examples).
 
 ---
 
-## The twelve tools
+## The thirteen tools
 
 Two balances pay for them: a **Cloud Request** fetches one video's transcript, and **AI Units**
 pay for reading frames and for transcribing audio — a fresh frame analysis spends one of each kind:
@@ -258,14 +262,15 @@ fetch. Every metered result reports what it `charged`.
 | `search_transcript` | Find where a video discusses something. Takes one video **or a list of up to 25**, so one call can answer a question across a whole channel. Returns the matching moments with timestamps, quoted context, and `youtube.com/watch?v=…&t=…s` deep links. Optional `from`/`to`. | 1 Cloud Request per new video |
 | `get_transcript` | Transcript text for up to 25 videos, or the span between two timecodes. `lang` picks a caption track, `maxChars` pages a long transcript, `source: "audio"` transcribes the speech itself. | 1 Cloud Request per new video |
 | `search_library` | Full-text search across every transcript the account has already saved, with timestamps and deep links. | Free |
-| `list_library` | The account's saved videos, newest first. | Free |
+| `list_library` | The account's saved videos, newest first, plus the latest finished analysis ID. | Free |
+| `list_analyses` | Saved AI Watch analyses with IDs, status and result links; supports pagination and video filtering. | Free |
 | `list_languages` | The caption tracks a video has, and which are auto-generated (the speech) versus uploaded (possibly translations). | Free |
 | `list_channel_videos` | Resolve a channel handle, URL or `UC…` id to its recent uploads. | 1 Cloud Request · Starter and up |
 | `list_watchlists` | The account's Radar watchlists and how much each has recorded. | Free |
 | `watchlist_activity` | Newest uploads Radar has recorded for one watchlist. | Free |
 | `account` | Plan and both balances, so the agent can price a job before running it. | Free |
 | `analyze_video` | Start a frame-level analysis — slides, charts, demos and on-screen text, not just captions. Returns an `analysisId` immediately. `mode` is `quick`, `smart`, `deep` or `auto`; Deep runs on any plan with enough AI Units. `estimateOnly: true` returns the price instead, without starting anything. | 1 Cloud Request, then AI Units per minute: Quick 2.8, Standard 4, Deep 30 · estimate free |
-| `get_analysis` | Read a finished analysis: chapters, key points, timestamped evidence. `waitSeconds` (up to 25) holds the call until it is ready instead of polling. | Free |
+| `get_analysis` | Read a finished analysis: overview, chapters, key points, timestamped evidence and steps. Omit `analysisId` to open the latest finished result. `waitSeconds` (up to 25) holds the call until it is ready instead of polling. | Free |
 | `ask_video` | Ask a question against a finished analysis. Citations are verified against stored evidence or dropped. | 6 AI Units per question |
 
 ### Check the Library first

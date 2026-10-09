@@ -114,6 +114,19 @@ plan or better). Each new video in the list bills the usual 1 Cloud Request. If 
 unavailable it comes back as its own row with an `error` — the rest were fetched
 and charged for, so read them rather than discarding the call.
 
+## Returning to an existing AI Watch analysis
+
+For “show my last analysis”, call `get_analysis` without an `analysisId`. It opens
+this account's latest finished analysis for free. Use `list_analyses` to find an
+older result or filter by video; its entries include IDs, status and result links.
+`list_library` also returns `latestAnalysis.analysisId` for clients with an older
+cached tool list. Retrieve the result before offering to run a new paid analysis.
+
+The result contains complete JSON text and `structuredContent`. Compatible MCP
+Apps hosts render an interactive card with **Show full analysis**. If the host
+cannot render the card, present the requested sections and timestamp links from
+the text result; do not claim the analysis is unavailable.
+
 ## When the question is about something SHOWN, not said
 
 `analyze_video` reads the video's **frames** — slides, charts, on-screen text,
@@ -124,7 +137,7 @@ the evidence is insufficient. It will refuse rather than guess; treat a refusal 
 the correct answer, not a failure to retry.
 
 A fresh analysis spends 1 Cloud Request (for the transcript) plus AI Units per
-minute of video — 2.1 for Quick, 3 for a standard run, 30 for Deep. Deep runs on
+minute of video — 2.8 for Quick, 4 for a standard run, 30 for Deep. Deep runs on
 any plan with enough AI Units. Before a long video or a Deep run, call
 `analyze_video` with `estimateOnly: true`: free, it starts nothing, and returns
 `cloudRequests`, `aiUnits` and `maxAiUnits`. A video with no captions is still
@@ -143,7 +156,7 @@ is ready, instead of polling in a tight loop.
 | call | cost |
 |---|---|
 | `search_transcript`, `get_transcript` | 1 Cloud Request per video the account does not have yet; free for one it does |
-| `search_library`, `list_library`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
+| `search_library`, `list_library`, `list_analyses`, `list_languages`, `list_watchlists`, `watchlist_activity`, `account`, `get_analysis` | free |
 | `list_channel_videos` | 1 Cloud Request |
 | `analyze_video` | 1 Cloud Request + AI Units per minute: Quick 2.8, Standard 4, Deep 30 (a captionless video costs nothing extra; `transcribeAudio: true` adds 3 per minute — see `maxAiUnits`); starting the same analysis again on the account (same video, mode and range) and `estimateOnly` are free |
 | `ask_video` | 6 AI Units per question |

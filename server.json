@@ -3,7 +3,7 @@
   "name": "com.vidwords/youtube",
   "title": "VidWords YouTube",
   "description": "Extract YouTube transcripts, search what was said, and read on-screen frames with cited timestamps.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "websiteUrl": "https://vidwords.com/resources/youtube-mcp-server",
   "repository": {
     "url": "https://github.com/haljishi/vidwords-mcp",

@@ -1,0 +1,25 @@
+name: proxy-checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  sdk-roundtrip:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm pack --dry-run
+      - name: Docker stdio round-trip
+        if: matrix.node == 24
+        run: |
+          docker build --build-arg NODE_IMAGE=public.ecr.aws/docker/library/node:20-alpine -t vidwords-mcp:test .
+          PROXY_TEST_DOCKER_IMAGE=vidwords-mcp:test npm test
