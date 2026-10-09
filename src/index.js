@@ -33,23 +33,21 @@ import {
   GetPromptRequestSchema,
   ListPromptsRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
 const UPSTREAM_URL = process.env.VIDWORDS_MCP_URL || 'https://vidwords.com/mcp';
 const API_TOKEN = process.env.VIDWORDS_API_TOKEN;
 
-// Captured from POST https://vidwords.com/mcp tools/list and prompts/list, 2026-10-08.
-// Upstream's get_analysis and ask_video also carry _meta.ui (an MCP App view at
-// ui://vidwords/watch-view.html). It is left out here: this proxy declares no
-// `resources` capability, so a client could not fetch that view through it. The
-// tool results — text, deep links and attached frame images — pass through as-is.
+// Captured from the deployed server source, 2026-10-10. Preserve UI metadata:
+// resources/list works offline; resources/read forwards through the authenticated upstream.
 const TOOLS = [
   {
     "name": "search_transcript",
     "title": "Search video transcripts",
     "description": "Search one or many YouTube videos for a phrase or topic and return the matching moments with timestamps and deep links you can cite. Costs 1 Cloud Request per video the account does not already have (the transcript is fetched to search it); searching a video already in its library is free. Use this instead of get_transcript when the user asks what a video says about something — pass a list to answer \"what does this channel say about X\" in a single call (get the ids from list_channel_videos first).",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "video": {
@@ -111,7 +109,8 @@ const TOOLS = [
       },
       "required": [
         "query"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": false,
@@ -127,7 +126,6 @@ const TOOLS = [
     "title": "Get full video transcripts",
     "description": "Fetch the complete transcript text for one or more YouTube videos, or just the part between two timecodes. Costs 1 Cloud Request per video the account does not already have; re-reading a video already in its library (another time range, another page) is free, and each result reports what it `charged`. Prefer search_transcript when you only need the parts about a specific topic — full transcripts of long videos are large and mostly irrelevant to the question. When the user names a time span (\"what was said between 10:20 and 11:00\"), pass from/to rather than fetching the whole thing.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "videos": {
@@ -173,7 +171,8 @@ const TOOLS = [
       },
       "required": [
         "videos"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": false,
@@ -189,7 +188,6 @@ const TOOLS = [
     "title": "List a channel’s recent videos",
     "description": "Resolve a YouTube channel handle, URL or id to its recent uploads. Costs 1 Cloud Request. Requires the Starter plan or higher.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "channel": {
@@ -199,7 +197,8 @@ const TOOLS = [
       },
       "required": [
         "channel"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -215,7 +214,6 @@ const TOOLS = [
     "title": "List a video’s caption languages",
     "description": "The caption tracks a video has — language code, name, and whether it is auto-generated — so you can pass the right `lang` to get_transcript instead of guessing. An auto-generated track transcribes the speech; an uploaded one may be a translation. Free, and answers only from a stored tracklist; a video without one reports known:false rather than costing a Cloud Request.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "videos": {
@@ -237,7 +235,8 @@ const TOOLS = [
       },
       "required": [
         "videos"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -253,7 +252,6 @@ const TOOLS = [
     "title": "Search my saved transcripts",
     "description": "Full-text search across every transcript this account has already saved, returning the matching moments with timestamps and deep links. Free — no Cloud Request, no AI Units. Try this FIRST when the user asks about something they have watched or researched before, and before fetching a video again with get_transcript or search_transcript.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "query": {
@@ -279,7 +277,8 @@ const TOOLS = [
       },
       "required": [
         "query"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -293,9 +292,8 @@ const TOOLS = [
   {
     "name": "list_library",
     "title": "List my saved videos",
-    "description": "The videos this account has saved, newest first, with title, channel, language and whether the transcript is searchable with search_library. Free. Use it to see what the user already has before fetching anything; page with `before` set to the last item’s `savedAtMs`.",
+    "description": "The videos this account has saved, newest first, with title, channel, language and whether the transcript is searchable with search_library. Free. Use it to see what the user already has before fetching anything; page with `before` set to the last item’s `savedAtMs`. Also returns latestAnalysis with the latest finished AI Watch analysisId: call get_analysis with that ID to display the full analysis.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "limit": {
@@ -311,7 +309,8 @@ const TOOLS = [
           "minimum": -9007199254740991,
           "maximum": 9007199254740991
         }
-      }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -327,9 +326,9 @@ const TOOLS = [
     "title": "List Radar watchlists",
     "description": "The account’s Radar watchlists — the YouTube channels it monitors for new uploads — with how many new videos each has recorded. Free.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
-      "properties": {}
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -345,7 +344,6 @@ const TOOLS = [
     "title": "Recent uploads on a watchlist",
     "description": "The most recent videos Radar has recorded for one watchlist, newest first. Free. Pair with search_transcript to answer questions about what those videos said.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "watchlistId": {
@@ -363,7 +361,8 @@ const TOOLS = [
       },
       "required": [
         "watchlistId"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -377,11 +376,11 @@ const TOOLS = [
   {
     "name": "account",
     "title": "Plan and usage balances",
-    "description": "The plan, Cloud Request balance and AI Processing balance for the calling token. Free. Check this before a large batch so you can tell the user what a job will cost instead of failing partway through it.",
+    "description": "The plan, Cloud Request balance and AI Processing balance for the calling token. Free. Check this before a large batch so you can tell the user what a job will cost instead of failing partway through it. Includes the monthly reset date and browser links to top-ups and plans; supporting clients show an interactive card.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
-      "properties": {}
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -390,6 +389,15 @@ const TOOLS = [
     },
     "execution": {
       "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://vidwords/account-view.html"
+      },
+      "ui/resourceUri": "ui://vidwords/account-view.html",
+      "openai/outputTemplate": "ui://vidwords/account-view.html",
+      "openai/toolInvocation/invoking": "Checking VidWords balances…",
+      "openai/toolInvocation/invoked": "VidWords balances checked"
     }
   },
   {
@@ -397,7 +405,6 @@ const TOOLS = [
     "title": "Analyze a video’s frames and speech",
     "description": "Start a deep visual analysis of a YouTube video: chapters, key moments, on-screen text and evidence tied to exact timestamps. Reads the picture, not just the captions, so it can answer questions about a slide, chart or demo the transcript never mentions. A fresh analysis spends 1 Cloud Request plus AI Units per minute of video — Quick 2.8, Standard 4, Deep 30 — and a captionless video is analyzed from its picture and soundtrack at no extra charge (transcribeAudio adds a word-for-word transcript for 3 more per minute). Before a long video or a Deep run, call it with estimateOnly: true — free — and tell the user the price. Returns immediately with an analysisId; analysis takes minutes, so call get_analysis with waitSeconds rather than polling in a tight loop. Starting the same analysis again on this account (same video, mode and range) returns the existing analysisId free of charge; it may still be running, so poll it the same way.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "video": {
@@ -433,7 +440,8 @@ const TOOLS = [
       },
       "required": [
         "video"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": false,
@@ -442,33 +450,37 @@ const TOOLS = [
     },
     "execution": {
       "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "openai/toolInvocation/invoking": "Starting the video analysis…",
+      "openai/toolInvocation/invoked": "Video analysis started"
     }
   },
   {
-    "name": "get_analysis",
-    "title": "Read a finished video analysis",
-    "description": "Fetch the analysis started by analyze_video. Free. Pass waitSeconds (up to 25) to have the server hold the call until the analysis finishes or the wait runs out, instead of polling repeatedly. While status is \"queued\" or \"processing\" the analysis field is absent — call again. When \"ready\" it contains the summary, chapters, key points and timestamped evidence. Every chapter, evidence item and step carries `at` (\"12:34\"), a `youtubeUrl` that opens the video AT that second, and, when YouTube publishes frames for the video, a `frameUrl` still of that moment; a contact sheet of frames is attached as an image. Cite moments to the user as [12:34](youtubeUrl) links.",
+    "name": "list_analyses",
+    "title": "List my AI Watch analyses",
+    "description": "Saved AI Watch analysis history, newest first, with analysisId, video, mode and status. Free. Use this for previous analyses; list_library lists transcripts instead. Call get_analysis with a returned analysisId to display the full result and its chat UI. For the latest finished analysis, call get_analysis with no arguments.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
-        "analysisId": {
+        "limit": {
+          "default": 20,
           "type": "integer",
-          "minimum": -9007199254740991,
-          "maximum": 9007199254740991,
-          "description": "The analysisId returned by analyze_video"
+          "minimum": 1,
+          "maximum": 100
         },
-        "waitSeconds": {
-          "default": 0,
-          "description": "Hold the call up to this many seconds (max 25) while the analysis is still running.",
+        "before": {
+          "description": "Return IDs below the last analysisId on the previous page.",
           "type": "integer",
-          "minimum": 0,
-          "maximum": 25
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "video": {
+          "description": "Optional YouTube URL or video ID to filter history.",
+          "type": "string"
         }
       },
-      "required": [
-        "analysisId"
-      ]
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": true,
@@ -480,18 +492,58 @@ const TOOLS = [
     }
   },
   {
+    "name": "get_analysis",
+    "title": "Read a finished video analysis",
+    "description": "Display a saved AI Watch analysis and its interactive chat UI. Free. Omit analysisId to open this account’s latest finished analysis, including results created on the website or through another client. Use list_analyses to find older results. If the client cannot render the UI, show the analysis in the chat with its timestamp links. Pass waitSeconds (up to 25) to have the server hold the call until the analysis finishes or the wait runs out, instead of polling repeatedly. While status is \"queued\" or \"processing\" the analysis field is absent — call again. When \"ready\" it contains the summary, chapters, key points and timestamped evidence. Every chapter, evidence item and step carries `at` (\"12:34\"), a `youtubeUrl` that opens the video AT that second, and, when YouTube publishes frames for the video, a `frameUrl` still of that moment; a contact sheet of frames is attached as an image. Cite moments to the user as [12:34](youtubeUrl) links.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "analysisId": {
+          "description": "ID from analyze_video or list_analyses. Omit for the latest finished analysis.",
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "waitSeconds": {
+          "default": 0,
+          "description": "Hold the call up to this many seconds (max 25) while the analysis is still running.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 25
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://vidwords/watch-view.html"
+      },
+      "ui/resourceUri": "ui://vidwords/watch-view.html",
+      "openai/outputTemplate": "ui://vidwords/watch-view.html",
+      "openai/toolInvocation/invoking": "Opening the video analysis…",
+      "openai/toolInvocation/invoked": "Video analysis opened"
+    }
+  },
+  {
     "name": "ask_video",
     "title": "Ask a question about an analyzed video",
     "description": "Ask a question against a finished analysis and get an answer whose citations are verified against the stored evidence: a visual claim must match a real recorded frame and a spoken one a real transcript segment, or it is dropped. When nothing survives, the answer says the evidence is insufficient rather than guessing. Each citation carries `at`, a `youtubeUrl` that opens the video at that second and, when available, a `frameUrl` still; the cited frames are attached as images. Cite them to the user as [12:34](youtubeUrl) links. Costs 6 AI Units per question.",
     "inputSchema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
       "properties": {
         "analysisId": {
           "type": "integer",
-          "minimum": -9007199254740991,
+          "exclusiveMinimum": 0,
           "maximum": 9007199254740991,
-          "description": "The analysisId returned by analyze_video"
+          "description": "ID from analyze_video or list_analyses."
         },
         "question": {
           "type": "string",
@@ -502,7 +554,8 @@ const TOOLS = [
       "required": [
         "analysisId",
         "question"
-      ]
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
     },
     "annotations": {
       "readOnlyHint": false,
@@ -511,6 +564,15 @@ const TOOLS = [
     },
     "execution": {
       "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://vidwords/watch-view.html"
+      },
+      "ui/resourceUri": "ui://vidwords/watch-view.html",
+      "openai/outputTemplate": "ui://vidwords/watch-view.html",
+      "openai/toolInvocation/invoking": "Checking the video for an answer…",
+      "openai/toolInvocation/invoked": "Answer checked against the video"
     }
   }
 ];
@@ -559,6 +621,23 @@ const PROMPTS = [
   }
 ];
 
+const RESOURCES = [
+  {
+    "name": "watch_view",
+    "title": "Video analysis view",
+    "uri": "ui://vidwords/watch-view.html",
+    "description": "Interactive view of a Watch analysis or answer: chapters and moments with their frames.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  {
+    "name": "account_view",
+    "title": "VidWords usage",
+    "uri": "ui://vidwords/account-view.html",
+    "description": "Current balances, reset date and top-up options.",
+    "mimeType": "text/html;profile=mcp-app"
+  }
+];
+
 /**
  * The upstream is stateless, so there is no session to keep alive; we still
  * cache one connected client so a run of calls does not re-handshake each time,
@@ -571,13 +650,13 @@ async function getUpstream() {
   const transport = new StreamableHTTPClientTransport(new URL(UPSTREAM_URL), {
     requestInit: { headers: { Authorization: `Basic ${API_TOKEN}` } },
   });
-  const client = new Client({ name: 'vidwords-mcp-proxy', version: '1.1.0' }, { capabilities: {} });
+  const client = new Client({ name: 'vidwords-mcp-proxy', version: '1.2.0' }, { capabilities: {} });
   await client.connect(transport);
   upstream = client;
   return client;
 }
 
-const server = new Server({ name: 'vidwords-youtube', version: '1.1.0' }, { capabilities: { tools: {}, prompts: {} } });
+const server = new Server({ name: 'vidwords-youtube', version: '1.2.0' }, { capabilities: { tools: {}, prompts: {}, resources: {} } });
 
 const MISSING_TOKEN =
   'VIDWORDS_API_TOKEN is not set. Create a free account at https://vidwords.com/register, ' +
@@ -585,6 +664,17 @@ const MISSING_TOKEN =
   'the VIDWORDS_API_TOKEN environment variable.';
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: RESOURCES }));
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  if (!API_TOKEN) throw new Error(MISSING_TOKEN);
+  try {
+    const client = await getUpstream();
+    return await client.readResource(request.params);
+  } catch (err) {
+    upstream = null;
+    throw err;
+  }
+});
 
 // Listed inline like the tools; the TEXT of a prompt is upstream's, so a get is
 // forwarded — the prompts name live tools and prices, which only upstream knows.
