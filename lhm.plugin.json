@@ -27,6 +27,10 @@
       "description": "Fetch the complete transcript text for one or more YouTube videos, or just the part between two timecodes. Costs 1 Cloud Request per video the account does not already have; re-reading a video already in its library (another time range, another page) is free, and each result reports what it `charged`. Prefer search_transcript when you only need the parts about a specific topic \u2014 full transcripts of long videos are large and mostly irrelevant to the question. When the user names a time span (\"what was said between 10:20 and 11:00\"), pass from/to rather than fetching the whole thing."
     },
     {
+      "name": "translate_transcript",
+      "description": "Translate one video's transcript into ANY language with AI, line for line: every caption line keeps its timestamp. Use it when the user wants the transcript in a language the video has no captions in (get_transcript answers `language_unavailable` with `aiTranslation`), or wants an audio transcription translated. Price: 2 AI Units per started minute of video, plus 1 Cloud Request if the video is not in the library yet; charged once and only when the translation is returned, and reading it again is free. `estimateOnly: true` returns the exact price without translating."
+    },
+    {
       "name": "list_channel_videos",
       "description": "Resolve a YouTube channel handle, URL or id to its recent uploads. Costs 1 Cloud Request. Requires the Starter plan or higher."
     },
