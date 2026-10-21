@@ -8,7 +8,7 @@
 [![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge)](https://cursor.com/en/install-mcp?name=vidwords&config=eyJ1cmwiOiJodHRwczovL3ZpZHdvcmRzLmNvbS9tY3AifQ%3D%3D)
 [![Add to VS Code](https://img.shields.io/badge/Add_to-VS_Code-0098FF?style=for-the-badge)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522vidwords%2522%252C%2522type%2522%253A%2522http%2522%252C%2522url%2522%253A%2522https%253A%252F%252Fvidwords.com%252Fmcp%2522%257D)
 
-A language model cannot watch a video. Point it at this endpoint and it gains thirteen tools for
+A language model cannot watch a video. Point it at this endpoint and it gains fourteen tools for
 searching transcripts, searching the videos you have already saved, reading a video's **frames** —
 slides, charts, demos, on-screen text — and answering questions with citations that are verified
 before you see them.
@@ -249,7 +249,7 @@ Ready-made config files live in [`examples/`](./examples).
 
 ---
 
-## The thirteen tools
+## The fourteen tools
 
 Two balances pay for them: a **Cloud Request** fetches one video's transcript, and **AI Units**
 pay for reading frames and for transcribing audio — a fresh frame analysis spends one of each kind:
@@ -261,6 +261,7 @@ fetch. Every metered result reports what it `charged`.
 | --- | --- | --- |
 | `search_transcript` | Find where a video discusses something. Takes one video **or a list of up to 25**, so one call can answer a question across a whole channel. Returns the matching moments with timestamps, quoted context, and `youtube.com/watch?v=…&t=…s` deep links. Optional `from`/`to`. | 1 Cloud Request per new video |
 | `get_transcript` | Transcript text for up to 25 videos, or the span between two timecodes. `lang` picks a caption track, `maxChars` pages a long transcript, `source: "audio"` transcribes the speech itself. | 1 Cloud Request per new video |
+| `translate_transcript` | A video's transcript translated by AI into **any** language, line for line: every line keeps its timestamp, so it reads, cites and downloads like the original. For a language the video has no captions in (`get_transcript` then answers `language_unavailable` with an `aiTranslation` offer), or to translate an audio transcription. `estimateOnly: true` returns the price without translating. | 2 AI Units per started minute of video, only when it succeeds; reopening is free · plus 1 Cloud Request for a new video |
 | `search_library` | Full-text search across every transcript the account has already saved, with timestamps and deep links. | Free |
 | `list_library` | The account's saved videos, newest first, plus the latest finished analysis ID. | Free |
 | `list_analyses` | Saved AI Watch analyses with IDs, status and result links; supports pagination and video filtering. | Free |
@@ -328,6 +329,10 @@ why it is the track it is:
 - `source: "audio"` transcribes what is said instead of reading captions — the way to get the
   original words when every caption is a translation. It is priced like any audio transcription
   (3 AI Units per minute of video, on top of the Cloud Request) and passing it is the consent.
+
+- No track in the language you want, and YouTube cannot translate into it? `translate_transcript`
+  translates the transcript with AI into any language, timestamps kept (2 AI Units per started
+  minute, charged once and only on success; reading it again is free).
 
 `list_languages` answers the same question for free, from what is already stored.
 
