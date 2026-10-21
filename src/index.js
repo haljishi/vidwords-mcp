@@ -40,7 +40,7 @@ import {
 const UPSTREAM_URL = process.env.VIDWORDS_MCP_URL || 'https://vidwords.com/mcp';
 const API_TOKEN = process.env.VIDWORDS_API_TOKEN;
 
-// Captured from the deployed server source, 2026-10-10. Preserve UI metadata:
+// Captured from the deployed server source, 2026-10-10; translate_transcript added 2026-10-21 (haljishi/vidwords#733). Preserve UI metadata:
 // resources/list works offline; resources/read forwards through the authenticated upstream.
 const TOOLS = [
   {
@@ -171,6 +171,65 @@ const TOOLS = [
       },
       "required": [
         "videos"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "translate_transcript",
+    "title": "Translate a transcript with AI",
+    "description": "Translate one video’s transcript into ANY language with AI, line for line: every caption line keeps its timestamp, so the translation reads, cites and downloads like the original. Use it when the user wants the transcript in a language the video has no captions in (get_transcript then answers `language_unavailable` with `aiTranslation`), or wants an audio transcription translated. YouTube’s own caption translations stay on get_transcript’s `lang`. Price: 2 AI Units per started minute of video (a 10-minute video costs 20), plus 1 Cloud Request if the video is not in the library yet. The whole transcript is translated and charged once, and only when the translation is returned: a failure or a refusal costs no AI Units, and reading it again (another range, the next page) is free. Confirm the price with the user first unless they asked for the translation; `estimateOnly: true` returns the exact price without translating. To understand a few minutes of a long video, get_transcript with from/to is cheaper: translate that span yourself.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "video": {
+          "type": "string",
+          "description": "YouTube video URL or id"
+        },
+        "lang": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Language to translate into, as a code: \"es\", \"pt-BR\", \"sw\", \"zh-Hant\", \"ar\"…"
+        },
+        "sourceLang": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Caption track to translate FROM (a code from `availableLanguages`). Omit for the video’s own language, which is almost always right."
+        },
+        "from": {
+          "type": "string",
+          "description": "Return only the translation from this point. Seconds (\"615\"), \"m:ss\" (\"10:20\") or \"h:mm:ss\". The whole transcript is still what is translated and charged, once."
+        },
+        "to": {
+          "type": "string",
+          "description": "End of the span to return. Same formats as \"from\"."
+        },
+        "maxChars": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 200000,
+          "description": "Return at most this many characters, cut on a caption boundary. A cut result has `truncated: true` and `nextFrom`: pass that as `from` to read the next page, free."
+        },
+        "transcribeAudio": {
+          "type": "boolean",
+          "description": "Allow transcribing the AUDIO of videos that have no captions. Off by default because it is priced by duration — 3 AI Units per minute of video, on top of the Cloud Request — so a batch of long captionless videos can spend a large share of the account’s monthly allowance in one call. Left off, such a video is reported as having no transcript and nothing is charged for it."
+        },
+        "estimateOnly": {
+          "type": "boolean",
+          "description": "Return the price (`estimate.aiUnits`) and whether the account can pay it, without translating or spending AI Units. Reading the source transcript for a video not yet in the library still costs its Cloud Request, and saves it, so the translation after it does not pay that again."
+        }
+      },
+      "required": [
+        "video",
+        "lang"
       ],
       "$schema": "http://json-schema.org/draft-07/schema#"
     },

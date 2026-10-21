@@ -23,13 +23,13 @@ async function proxy(env = {}) {
   return client;
 }
 
-test('offline discovery exposes thirteen tools and UI resources without a token', async () => {
+test('offline discovery exposes fourteen tools and UI resources without a token', async () => {
   const client = await proxy({ VIDWORDS_MCP_URL: 'http://127.0.0.1:1/mcp' });
   try {
     assert.equal(client.getServerVersion().version, '1.2.0');
     assert.ok(client.getServerCapabilities().resources);
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 13);
+    assert.equal(tools.length, 14);
     assert.ok(tools.some(t => t.name === 'list_analyses'));
     const analysis = tools.find(t => t.name === 'get_analysis');
     assert.ok(!analysis.inputSchema.required?.includes('analysisId'));
